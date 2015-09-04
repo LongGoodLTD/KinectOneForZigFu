@@ -104,15 +104,15 @@ All other requirement about KinectOne you have to satisfy.
 
 ###### Second, add KinectOneController prefabs to Hierarchy:
 
-![HierarchyView](https://github.com/LongGoodLTD/KinectOneForZigFu/tree/master/raw/HierarchyView.png)
+![HierarchyView](https://raw.githubusercontent.com/LongGoodLTD/KinectOneForZigFu/master/raw/HierarchyView.png)
 
 ###### Third, Set KinectOneController to ZigFu GameObject:
 
-![ZigFu_Setup](https://github.com/LongGoodLTD/KinectOneForZigFu/tree/master/raw/ZigFu_Setup.png)
+![ZigFu_Setup](https://raw.githubusercontent.com/LongGoodLTD/KinectOneForZigFu/master/raw/ZigFu_Setup.png)
 
 ###### Finally, Set Zigfu and Blockman user to  KinectOneToZig:
 
-![KinectOneToZig_InspectorView](https://github.com/LongGoodLTD/KinectOneForZigFu/tree/master/raw/KinectOneToZig_InspectorView.png)
+![KinectOneToZig_InspectorView](https://raw.githubusercontent.com/LongGoodLTD/KinectOneForZigFu/master/raw/KinectOneToZig_InspectorView.png)
 
 Okay, done.
 
