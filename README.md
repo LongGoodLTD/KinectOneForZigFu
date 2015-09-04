@@ -2,9 +2,9 @@
 
 Hi Everyone,
 
-We are LongGood Ltd,. We are dedicated to motion-sensing rehabilitation.
+We are [LongGood Ltd](http://www.rehabfun.com/),. We are dedicated to motion-sensing rehabilitation.
 
-Unfortunately, Kinect360 has been discontinued, and KinectOne is higher quality than Xtion and Kinect. So we decide to use KinectOne to be one of our choice. After studying Zig's structure, We implement an plugin named KinectOneForZigFu. We share it to who use ZigFu and want to integrate KinectOne.
+Kinect360 has been discontinued and KinectOne is higher quality than Xtion and Kinect. So we decide to use KinectOne to be one of our choice. After studying Zig's structure, We implement a plugin named KinectOneForZigFu. Now, we share it to who use ZigFu and want to integrate KinectOne.
 
 ### Requirement
 
@@ -104,16 +104,24 @@ All other requirement about KinectOne you have to satisfy.
 
 ###### Second, add KinectOneController prefabs to Hierarchy:
 
-![HierarchyView](https://octodex.github.com/raw/HierarchyView.png)
+![HierarchyView](https://github.com/LongGoodLTD/KinectOneForZigFu/tree/master/raw/HierarchyView.png)
 
 ###### Third, Set KinectOneController to ZigFu GameObject:
 
-![ZigFu_Setup](https://octodex.github.com/raw/ZigFu_Setup.png)
+![ZigFu_Setup](https://github.com/LongGoodLTD/KinectOneForZigFu/tree/master/raw/ZigFu_Setup.png)
 
 ###### Finally, Set Zigfu and Blockman user to  KinectOneToZig:
 
-![KinectOneToZig_InspectorView](https://octodex.github.com/raw/KinectOneToZig_InspectorView.png)
+![KinectOneToZig_InspectorView](https://github.com/LongGoodLTD/KinectOneForZigFu/tree/master/raw/KinectOneToZig_InspectorView.png)
 
 Okay, done.
 
 Plug in your KinectOne and OnGui will show the depth view or removal background color image depends on whether user is tracked or not.
+
+### Contributing
+
+1. Fork it ( https://github.com/LongGoodLTD/KinectOneForZigFu/fork )
+2. Create your feature branch (`git checkout -b my-new-feature`)
+3. Commit your changes (`git commit -am 'Add some feature'`)
+4. Push to the branch (`git push origin my-new-feature`)
+5. Create a new Pull Request
