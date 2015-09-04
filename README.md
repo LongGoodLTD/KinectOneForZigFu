@@ -18,13 +18,13 @@ All other requirement about KinectOne you have to satisfy.
 
 ###### First of all, you have to modify zig.cs.
 
-1. Add KinectOneController GameObject
+* Add KinectOneController GameObject
 
 ```csharp
     public GameObject kinectOneObject;
 ```
 
-2. Modify Awake()
+* Modify Awake()
 
 ```csharp
 
@@ -41,7 +41,7 @@ All other requirement about KinectOne you have to satisfy.
         DontDestroyOnLoad(this);
     }
 ```
-3. Modify Start()
+* Modify Start()
 
 ```csharp
     void Start()
@@ -70,7 +70,7 @@ All other requirement about KinectOne you have to satisfy.
 
     }
 ```
-4. Add following functions
+* Add following functions
 
 ```csharp
     bool StartOpenNiORKinectSDK(ZigInputType _inputType)
