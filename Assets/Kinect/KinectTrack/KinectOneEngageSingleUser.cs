@@ -336,9 +336,10 @@ public class KinectOneEngageSingleUser : BaseEngageSingleUser
         int K = 1000;
         return new Vector3(joint.Position.X * K, joint.Position.Y * K, -joint.Position.Z * K);
     }
-
+    //Smooth Joint Orientation.
     private Quaternion ApplyJointRotation(Kinect.JointType _type, Quaternion _lastRotation)
     {
+        //foot should not be smooth.
         if (_type == Kinect.JointType.FootLeft || _type == Kinect.JointType.FootRight)
             return _lastRotation;
         Quaternion smoothRotation = SmoothFilter(this.rotations[_type], _lastRotation);
@@ -350,6 +351,7 @@ public class KinectOneEngageSingleUser : BaseEngageSingleUser
     {
         return Mathf.Sqrt(q.x * q.x + q.y * q.y + q.z * q.z + q.w * q.w);
     }
+    //Get median for QueueSize 
     private Quaternion SmoothFilter(Queue<Quaternion> quaternions, Quaternion lastMedian)
     {
         Quaternion median = new Quaternion(0, 0, 0, 0);
