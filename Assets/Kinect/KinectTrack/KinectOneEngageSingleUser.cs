@@ -2,12 +2,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using Kinect = Windows.Kinect;
+using System;
 
 public class KinectOneEngageSingleUser : BaseEngageSingleUser
 {
     public Material BoneMaterial;
     public GameObject BodySourceManager;
-
     public ZigSkeleton user;
     public Transform zig;
 
@@ -41,7 +41,58 @@ public class KinectOneEngageSingleUser : BaseEngageSingleUser
         {Kinect.JointType.AnkleRight , ZigJointId.RightAnkle},
         {Kinect.JointType.FootRight , ZigJointId.RightFoot}
     };
-
+    // Get Child rotation.
+    private Dictionary<Kinect.JointType, Kinect.JointType> _BoneMap = new Dictionary<Kinect.JointType, Kinect.JointType>()
+    {
+        //{ Kinect.JointType.FootLeft, Kinect.JointType.AnkleLeft },
+        { Kinect.JointType.FootLeft, Kinect.JointType.FootLeft },
+        { Kinect.JointType.AnkleLeft, Kinect.JointType.AnkleLeft },
+        { Kinect.JointType.KneeLeft, Kinect.JointType.AnkleLeft },
+        { Kinect.JointType.HipLeft, Kinect.JointType.KneeLeft },
+        
+        //{ Kinect.JointType.FootRight, Kinect.JointType.AnkleRight },
+        { Kinect.JointType.FootRight, Kinect.JointType.FootRight },
+        { Kinect.JointType.AnkleRight, Kinect.JointType.AnkleRight },
+        { Kinect.JointType.KneeRight, Kinect.JointType.AnkleRight },
+        { Kinect.JointType.HipRight, Kinect.JointType.KneeRight },
+        
+        { Kinect.JointType.HandTipLeft, Kinect.JointType.HandLeft },
+        { Kinect.JointType.ThumbLeft, Kinect.JointType.HandLeft },
+        { Kinect.JointType.HandLeft, Kinect.JointType.WristLeft },
+        //{ Kinect.JointType.HandLeft, Kinect.JointType.HandLeft },
+        { Kinect.JointType.WristLeft, Kinect.JointType.WristLeft },
+        { Kinect.JointType.ElbowLeft, Kinect.JointType.WristLeft },
+        { Kinect.JointType.ShoulderLeft, Kinect.JointType.ElbowLeft },
+        //{ Kinect.JointType.ShoulderLeft, Kinect.JointType.SpineMid },
+        
+        { Kinect.JointType.HandTipRight, Kinect.JointType.HandRight },
+        { Kinect.JointType.ThumbRight, Kinect.JointType.HandRight },
+        { Kinect.JointType.HandRight, Kinect.JointType.WristRight },
+        //{ Kinect.JointType.HandRight, Kinect.JointType.HandRight },
+        { Kinect.JointType.WristRight, Kinect.JointType.WristRight },
+        { Kinect.JointType.ElbowRight, Kinect.JointType.WristRight },
+        { Kinect.JointType.ShoulderRight, Kinect.JointType.ElbowRight },
+        //{ Kinect.JointType.ShoulderRight, Kinect.JointType.SpineMid },
+        
+        { Kinect.JointType.SpineBase, Kinect.JointType.SpineMid },
+        { Kinect.JointType.SpineMid, Kinect.JointType.SpineShoulder },
+        { Kinect.JointType.SpineShoulder, Kinect.JointType.Neck },
+        { Kinect.JointType.Head, Kinect.JointType.Neck },
+    };
+    const int QueueSize = 5;
+    private Dictionary<Kinect.JointType, Queue<Quaternion>> rotations;
+    void Start()
+    {
+        this.rotations = new Dictionary<Kinect.JointType, Queue<Quaternion>>();
+        for (Kinect.JointType jt = Kinect.JointType.SpineBase; jt <= Kinect.JointType.ThumbRight; jt++)
+        {
+            this.rotations[jt] = new Queue<Quaternion>();
+            for (int i = 0; i < QueueSize; i++)
+            {
+                this.rotations[jt].Enqueue(Quaternion.identity);
+            }
+        }
+    }
     void Update()
     {
         //如果沒有負責建立骨骼資料的GameObject則跳出這個Function。
@@ -89,15 +140,19 @@ public class KinectOneEngageSingleUser : BaseEngageSingleUser
         }
         //在刪除已經不在的玩家之後，繼續比對如果骨骼物件中沒有當前讀取到的骨骼ID，則建立新的骨骼物件。
         //若是比對的結果是骨骼物件也有繼續在當前ID中讀取到該ID，代表玩家還在進行中，則進行更新玩家動作的Function。
-
         if (trackedUserId() == 0 || (trackedUserId() != 0 && _Bodies.ContainsKey(trackedUserId())))
         {
             ulong whichOneShouldBeCheck = 0;
             float nearestZ = 9999999f;
             foreach (var body in data)
             {
-                Kinect.Joint sourceJoint = body.Joints[Kinect.JointType.SpineShoulder];
+                Kinect.Joint sourceJoint = body.Joints[Kinect.JointType.Head];
                 if (sourceJoint.Position.Z == 0f) continue;
+                if (body.TrackingId == trackedId)
+                {
+                    whichOneShouldBeCheck = body.TrackingId;
+                    break;
+                }
                 if (nearestZ > sourceJoint.Position.Z)
                 {
                     nearestZ = sourceJoint.Position.Z;
@@ -118,7 +173,7 @@ public class KinectOneEngageSingleUser : BaseEngageSingleUser
                 if (!_Bodies.ContainsKey(body.TrackingId))
                 {
                     UserFound(body.TrackingId);
-//                    _Bodies[body.TrackingId] = CreateBodyObject(body.TrackingId);
+                    //                    _Bodies[body.TrackingId] = CreateBodyObject(body.TrackingId);
                 }
                 RefreshBodyObject(body, body.TrackingId);
                 if (body.TrackingId == trackedUserId())
@@ -128,7 +183,7 @@ public class KinectOneEngageSingleUser : BaseEngageSingleUser
             }
         }
     }
-    ulong trackedId =0;
+    ulong trackedId = 0;
     public ulong trackedUserId()
     {
         return trackedId;
@@ -155,7 +210,7 @@ public class KinectOneEngageSingleUser : BaseEngageSingleUser
             tUser = new ZigTrackedUser(inputUser);
             _Bodies[user_id] = tUser;
         }
-        zig.SendMessage("Zig_UserFound", tUser);
+        //zig.SendMessage("Zig_UserFound", tUser);
     }
 
     void UserLost(ulong userId)
@@ -167,18 +222,51 @@ public class KinectOneEngageSingleUser : BaseEngageSingleUser
             _engagedTrackedUser = null;
             trackedId = 0;
         }
-        zig.SendMessage("Zig_UserLost", tUser);
+        //zig.SendMessage("Zig_UserLost", tUser);
         _Bodies.Remove(userId);
     }
-
+    private Quaternion QuaternionFromVector4(Kinect.Vector4 v)
+    {
+        Quaternion q;
+        q = new Quaternion(v.X, v.Y, v.Z, v.W);
+        return q;
+    }
+    private Quaternion GetEachJointAngleAxis(Kinect.Joint joint, Quaternion _q)
+    {
+        if (joint.JointType == Kinect.JointType.ShoulderLeft || joint.JointType == Kinect.JointType.HandLeft || joint.JointType == Kinect.JointType.ElbowLeft)
+        {
+            //左上肢旋轉調整
+            return _q * Quaternion.AngleAxis(90, new Vector3(0, 1, 0)) * Quaternion.AngleAxis(-90, new Vector3(0, 0, 1));
+        }
+        else if (joint.JointType == Kinect.JointType.ShoulderRight || joint.JointType == Kinect.JointType.HandRight || joint.JointType == Kinect.JointType.ElbowRight)
+        {
+            //右上肢旋轉調整
+            return _q * Quaternion.AngleAxis(90, new Vector3(0, 1, 0)) * Quaternion.AngleAxis(-90, new Vector3(0, 0, 1)) * Quaternion.AngleAxis(180, new Vector3(0, 1, 0));
+        }
+        else if (joint.JointType == Kinect.JointType.FootLeft || joint.JointType == Kinect.JointType.KneeLeft || joint.JointType == Kinect.JointType.HipLeft)
+        {
+            //左下肢旋轉調整
+            return _q * Quaternion.AngleAxis(180, new Vector3(1, 0, 0)) * Quaternion.AngleAxis(90, new Vector3(0, 1, 0));
+        }
+        else if (joint.JointType == Kinect.JointType.FootRight || joint.JointType == Kinect.JointType.KneeRight || joint.JointType == Kinect.JointType.HipRight)
+        {
+            //右下肢旋轉調整
+            return _q * Quaternion.AngleAxis(180, new Vector3(1, 0, 0)) * Quaternion.AngleAxis(-90, new Vector3(0, 1, 0));
+        }
+        return _q * Quaternion.AngleAxis(180, new Vector3(0, 1, 0));
+    }
     private Vector3 headP;
     private Quaternion headQ;
-    IEnumerator JointUpdate(ulong userId, Kinect.Joint joint)
+    IEnumerator JointUpdate(ulong userId, Kinect.Joint joint, Kinect.JointOrientation ori)
     {
         string jointName;
         float x, y, z;
         Vector3 vec = GetVector3FromJoint(joint);
-        Quaternion q = Quaternion.identity;
+        //取得各自的旋轉量
+        Quaternion q = new Quaternion(-ori.Orientation.X, -ori.Orientation.Y, ori.Orientation.Z, ori.Orientation.W);
+        //q = q * Quaternion.AngleAxis(xRot, new Vector3(1, 0, 0)) * Quaternion.AngleAxis(90, new Vector3(0, 1, 0)) * Quaternion.AngleAxis(-90, new Vector3(0, 0, 1));
+        q = GetEachJointAngleAxis(joint, q);
+        q = ApplyJointRotation(joint.JointType, q);
         ZigJointId jointId;
         // argStr: user,jointName,x,y,z
         jointName = joint.ToString();
@@ -189,6 +277,10 @@ public class KinectOneEngageSingleUser : BaseEngageSingleUser
             headP = vec;
             headQ = q;
             UpdateLgTrackedUser(userId, headP);
+        }
+        if (joint.JointType == Kinect.JointType.Head)
+        {
+            //print(vec);
         }
         ZigTrackedUser tUser = _Bodies[userId];
         ZigInputJoint inputJoint = new ZigInputJoint(jointId, vec, q, true);
@@ -209,14 +301,23 @@ public class KinectOneEngageSingleUser : BaseEngageSingleUser
             //抓取到來源關節，以及重置目標關節為空物件。
             Kinect.Joint sourceJoint = body.Joints[jt];
             Kinect.Joint? targetJoint = null;
+            Kinect.JointOrientation targetJointOri = body.JointOrientations[jt];
+            Kinect.JointOrientation ori = body.JointOrientations[jt];
             if (!_kinectToZigMapping.ContainsKey(sourceJoint.JointType))
             {
                 continue;
             }
+            if (_BoneMap.ContainsKey(jt))
+            {
+                //_BoneMap[jt] 為 jt 的child
+                //_BoneMap 取得child object的資訊(旋轉量)
+                targetJoint = body.Joints[_BoneMap[jt]];
+                targetJointOri = body.JointOrientations[_BoneMap[jt]];
+            }
             //讀取出骨頭線段的出發點，也就是目前關節的位置。
             //Transform jointObj = bodyObject.transform.FindChild(jt.ToString());
             //jointObj.localPosition = GetVector3FromJoint(sourceJoint);
-            StartCoroutine(JointUpdate(userId,sourceJoint));
+            StartCoroutine(JointUpdate(userId, sourceJoint, targetJointOri));
         }
     }
     private void Kinect_UpdateUser()
@@ -232,7 +333,51 @@ public class KinectOneEngageSingleUser : BaseEngageSingleUser
     //將關節和關節間的位置放大，讓人的形狀更明顯。
     private static Vector3 GetVector3FromJoint(Kinect.Joint joint)
     {
-        int K=1000;
-        return new Vector3(joint.Position.X * K, joint.Position.Y * K, joint.Position.Z * K);
+        int K = 1000;
+        return new Vector3(joint.Position.X * K, joint.Position.Y * K, -joint.Position.Z * K);
+    }
+
+    private Quaternion ApplyJointRotation(Kinect.JointType _type, Quaternion _lastRotation)
+    {
+        if (_type == Kinect.JointType.FootLeft || _type == Kinect.JointType.FootRight)
+            return _lastRotation;
+        Quaternion smoothRotation = SmoothFilter(this.rotations[_type], _lastRotation);
+        this.rotations[_type].Enqueue(smoothRotation);
+        this.rotations[_type].Dequeue();
+        return smoothRotation;
+    }
+    private float GetNorm(Quaternion q)
+    {
+        return Mathf.Sqrt(q.x * q.x + q.y * q.y + q.z * q.z + q.w * q.w);
+    }
+    private Quaternion SmoothFilter(Queue<Quaternion> quaternions, Quaternion lastMedian)
+    {
+        Quaternion median = new Quaternion(0, 0, 0, 0);
+
+        foreach (Quaternion quaternion in quaternions)
+        {
+            float weight = 1 - Mathf.Sqrt(Mathf.Abs(Quaternion.Dot(lastMedian, quaternion) / (GetNorm(lastMedian) * GetNorm(quaternion)))); // 0 degrees of difference => weight 1. 180 degrees of difference => weight 0.
+            weight = Mathf.Clamp(weight, 0, 1);
+            Quaternion weightedQuaternion = Quaternion.Lerp(lastMedian, quaternion, weight);
+
+            median.x += weightedQuaternion.x;
+            median.y += weightedQuaternion.y;
+            median.z += weightedQuaternion.z;
+            median.w += weightedQuaternion.w;
+        }
+
+        median.x /= quaternions.Count;
+        median.y /= quaternions.Count;
+        median.z /= quaternions.Count;
+        median.w /= quaternions.Count;
+
+        return NormalizeQuaternion(median);
+    }
+
+    public Quaternion NormalizeQuaternion(Quaternion quaternion)
+    {
+        float x = quaternion.x, y = quaternion.y, z = quaternion.z, w = quaternion.w;
+        float length = 1.0f / Mathf.Sqrt(w * w + x * x + y * y + z * z);
+        return new Quaternion(x * length, y * length, z * length, w * length);
     }
 }
